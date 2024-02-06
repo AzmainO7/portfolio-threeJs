@@ -5,7 +5,7 @@ canvas {
 }
 
 
-:root {
+/* :root {
     --dark-bg: rgba(43, 124, 61, 0.95);
     --spacing: 350px;
 
@@ -46,10 +46,12 @@ canvas {
 
 
 header {
+    border-radius: 20px;
     background: var(--dark-bg);
     grid-column: 2 / span 5;
-    font-size: 2.5rem;
+    font-size: 2rem;
     padding: 2rem;
+    margin-top: 50px;
     margin-bottom: var(--spacing);
 }
 
@@ -79,4 +81,4 @@ blockquote p {
 
 .left {
     grid-column: 6 / 12;
-}
+} */

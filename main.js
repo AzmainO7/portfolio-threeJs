@@ -17,8 +17,8 @@ document.body.appendChild(renderer.domElement);
 
 camera.position.z = 30;
 
-var leaf1_color = 0x587e60;
-var leaf2_color = 0x5f926a;
+// var leaf1_color = 0x587e60;
+// var leaf2_color = 0x5f926a;
 var tree_log_color = 0x6F4E37;
 // var point_light_color = 0xF9E79F;
 // var ambient_light_color = 0xffffff;
@@ -26,7 +26,7 @@ var sun_position = new THREE.Vector3(10, 50, -20);
 
 const meshNameMap = new Map();
 
-scene.fog = new THREE.Fog(0xcccccc, 0.1, 500);
+scene.fog = new THREE.Fog(0xcccccc, 0.1, 300);
 
 // const geometry = new THREE.BoxGeometry(2, 1, 2);
 // // const material = new THREE.MeshBasicMaterial({ color: 0x00ff00, wireframe: true });
@@ -113,6 +113,51 @@ scene.add(directionalLight);
 // scene.add(lightHelper);
 
 const controls = new OrbitControls(camera, renderer.domElement);
+
+let particles;
+let positions = [], velocity = [];
+
+const numParticles = 15000;
+
+const maxRange = 1000, minRange = maxRange / 2;
+const minHeight = 150;
+
+const geometry1 = new THREE.BufferGeometry();
+const TextureLoader = new THREE.TextureLoader();
+
+addParticles();
+
+
+function addParticles() {
+    for (let i = 0; i < numParticles; i++) {
+        positions.push(
+            Math.floor(Math.random() * maxRange - minRange),
+            Math.floor(Math.random() * minRange + minHeight),
+            Math.floor(Math.random() * maxRange - minRange)
+        );
+        velocity.push(
+            Math.floor(Math.random() * 6 - 3) * 0.1,
+            Math.floor(Math.random() * 5 + 0.12) * 0.18,
+            Math.floor(Math.random() * 6 - 3) * 0.1
+        );
+    }
+
+    geometry1.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+    geometry1.setAttribute('velocity', new THREE.Float32BufferAttribute(velocity, 3));
+
+    const particleMaterial = new THREE.PointsMaterial({
+        size: 4,
+        map: TextureLoader.load("texture/snow.png"),
+        blending: THREE.AdditiveBlending,
+        depthTest: false,
+        transparent: true,
+        opacity: 0.7,
+    });
+
+    particles = new THREE.Points(geometry1, particleMaterial)
+    meshNameMap.set(particles, 'particles');
+    scene.add(particles)
+}
 
 function addCliff() {
     // const cliffHeight = THREE.MathUtils.randFloat(10, 50);
@@ -216,7 +261,7 @@ const treeShaderMaterial = new THREE.ShaderMaterial({
         
     `,
     uniforms: {
-       
+
     }
 });
 
@@ -383,7 +428,7 @@ function cycleColors() {
     changeFloorTexture(currentPair.floor, currentPair.floorColor, currentPair.lightColor);
     currentPairIndex = (currentPairIndex + 1) % colorPairs.length;
 
-    document.documentElement.style.setProperty('--dark-bg', `rgb(${currentPair.leaf1.r}, ${currentPair.leaf1.g}, ${currentPair.leaf1.b})`);
+    document.documentElement.style.setProperty('--dark-bg', `rgba(${currentPair.leaf1.r}, ${currentPair.leaf1.g}, ${currentPair.leaf1.b}, 0.9)`);
 }
 
 function updateLeafColors(color1, color2) {
@@ -426,11 +471,26 @@ function animate() {
 
     // cube.rotation.x += 0.01;
     // cube.rotation.y += 0.01;\
-
-    animateCamera();
+    updateParticles();
+    // animateCamera();
 
     controls.update();
     renderer.render(scene, camera);
+}
+
+function updateParticles(){
+    for (let i = 0; i < numParticles*3; i+=3) {
+        particles.geometry.attributes.position.array[i] -=particles.geometry.attributes.velocity.array[i]
+        particles.geometry.attributes.position.array[i+1] -=particles.geometry.attributes.velocity.array[i+1]
+        particles.geometry.attributes.position.array[i+2] -=particles.geometry.attributes.velocity.array[i+2]
+    
+        if(particles.geometry.attributes.position.array[i+1]<0){
+            particles.geometry.attributes.position.array[i] = Math.floor(Math.random() * maxRange - minRange);
+            particles.geometry.attributes.position.array[i+1] = Math.floor(Math.random() * minRange + minHeight);
+            particles.geometry.attributes.position.array[i+2] = Math.floor(Math.random() * maxRange - minRange);
+        }
+    }
+    particles.geometry.attributes.position.needsUpdate = true;
 }
 
 function animateCamera() {
