@@ -124,6 +124,23 @@ function getYPosition(x, z) {
     return 0;
 }
 
+// function getYPosition(x, z) {
+//     let closestY = 0;
+//     let closestDistance = Infinity;
+
+//     for (const child of scene.children) {
+//         if (child instanceof THREE.Mesh && child.geometry instanceof THREE.CylinderGeometry) {
+//             const distance = Math.sqrt((child.position.x - x) ** 2 + (child.position.z - z) ** 2);
+//             if (distance < 10 && distance < closestDistance) {
+//                 closestY = child.position.y;
+//                 closestDistance = distance;
+//             }
+//         }
+//     }
+
+//     return closestY;
+// }
+
 Array(2000).fill().forEach(addTree);
 
 const skyTexture = new THREE.TextureLoader().load('texture/sky.jpg');
@@ -158,11 +175,29 @@ document.addEventListener('keydown', function (event) {
 function animate() {
     requestAnimationFrame(animate);
 
+    console.log(camera.position.y, camera.position.z);
+
     // cube.rotation.x += 0.01;
     // cube.rotation.y += 0.01;
 
+    moveCamera();
+
     controls.update();
     renderer.render(scene, camera);
+}
+
+function moveCamera() {
+    const radius = 50;
+    const speed = 0.0001;
+    const angle = performance.now() * speed;
+
+    const x = Math.cos(angle) * radius;
+    const z = Math.sin(angle) * radius;
+
+    camera.position.x = x;
+    camera.position.z = z;
+    camera.position.y = 30;
+    camera.lookAt(scene.position);
 }
 
 animate();
