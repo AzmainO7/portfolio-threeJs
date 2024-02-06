@@ -32,9 +32,13 @@ const meshNameMap = new Map();
 
 const floorGeometry = new THREE.PlaneGeometry(2500, 2500);
 
-const floorTexture = new THREE.TextureLoader().load('texture/grass2.jpg');
-// const floorMaterial = new THREE.MeshStandardMaterial({ map: floorTexture });
-const floorMaterial = new THREE.MeshStandardMaterial({ color: 0x3a4f3f });
+const floorTexture = new THREE.TextureLoader().load('texture/Grass_whwnabbhr_1k_Diffuse.jpg');
+floorTexture.wrapS = THREE.RepeatWrapping;
+floorTexture.wrapT = THREE.RepeatWrapping;
+floorTexture.repeat.set(10, 10); // Adjust the repeat values to control the zoom level
+
+const floorMaterial = new THREE.MeshStandardMaterial({ map: floorTexture, color: 0x3a4f3f });
+// const floorMaterial = new THREE.MeshStandardMaterial({ color: 0x3a4f3f });
 const floor = new THREE.Mesh(floorGeometry, floorMaterial);
 floor.rotation.x = -Math.PI / 2;
 scene.add(floor);
@@ -45,12 +49,13 @@ const sun = new THREE.Mesh(geometry, material);
 sun.position.copy(sun_position);
 scene.add(sun);
 
+// const directionalLight = new THREE.DirectionalLight( point_light_color, 0.5 );
 const pointlight = new THREE.PointLight(point_light_color, 200000, 200);
 // const pointlight = new THREE.PointLight(0xF9E79F);
 pointlight.position.copy(sun_position);
 const AmbientLight = new THREE.AmbientLight(ambient_light_color);
+// scene.add(directionalLight);
 scene.add(pointlight, AmbientLight);
-// scene.add(pointlight);
 
 const lightHelper = new THREE.PointLightHelper(pointlight);
 const gridHelper = new THREE.GridHelper(2500, 50);
@@ -65,47 +70,70 @@ function addCliff() {
     // const cliffDepth = THREE.MathUtils.randFloat(10, 50);
 
     const geometry = new THREE.CylinderGeometry(50, 2, 20, 32);
-    // const material = new THREE.MeshStandardMaterial({ color: 0x3a4f3f, wireframe: true });
+    // const cliffTexture = new THREE.TextureLoader().load('texture/cliff3.jpeg');
+    // cliffTexture.wrapS = THREE.RepeatWrapping;
+    // cliffTexture.wrapT = THREE.RepeatWrapping;
+    // cliffTexture.repeat.set(10,10); // Adjust the repeat values to control the zoom level
     const material = new THREE.MeshStandardMaterial({ color: 0x3a4f3f });
+    // const material = new THREE.MeshStandardMaterial({map: cliffTexture});
     const cliff = new THREE.Mesh(geometry, material);
 
     cliff.rotation.x = Math.PI;
 
-    const x = THREE.MathUtils.randFloat(-500, 500);
-    const z = THREE.MathUtils.randFloat(-500, 500);
+    const x = THREE.MathUtils.randFloat(-200, 200);
+    const z = THREE.MathUtils.randFloat(-200, 200);
+
+    meshNameMap.set(cliff, 'cliff');
 
     cliff.position.set(x, 10, z);
     scene.add(cliff);
 }
 
-Array(100).fill().forEach(addCliff);
+Array(10).fill().forEach(addCliff);
 
 function addTree() {
     const geometry1 = new THREE.ConeGeometry(2, 5, 10);
+    // const leaf1Texture = new THREE.TextureLoader().load('texture/leaf3.webp');
+    // leaf1Texture.wrapS = THREE.RepeatWrapping;
+    // leaf1Texture.wrapT = THREE.RepeatWrapping;
+    // leaf1Texture.repeat.set(2, 2); // Adjust the repeat values to control the zoom level
+    // const material1 = new THREE.MeshStandardMaterial({ map: leaf1Texture });
     const material1 = new THREE.MeshStandardMaterial({ color: leaf1_color });
     const leaf1 = new THREE.Mesh(geometry1, material1);
 
     const geometry2 = new THREE.ConeGeometry(2, 5, 10);
+    // const leaf2Texture = new THREE.TextureLoader().load('texture/leaf3.webp');
+    // leaf2Texture.wrapS = THREE.RepeatWrapping;
+    // leaf2Texture.wrapT = THREE.RepeatWrapping;
+    // leaf2Texture.repeat.set(2, 2); // Adjust the repeat values to control the zoom level
+
+    // const material2 = new THREE.MeshStandardMaterial({ map: leaf2Texture });
     const material2 = new THREE.MeshStandardMaterial({ color: leaf2_color });
     const leaf2 = new THREE.Mesh(geometry2, material2);
 
     const geometry3 = new THREE.CylinderGeometry(0.5, 0.5, 5);
+    // const treeLogTexture = new THREE.TextureLoader().load('texture/log.jpg');
+    // treeLogTexture.wrapS = THREE.RepeatWrapping;
+    // treeLogTexture.wrapT = THREE.RepeatWrapping;
+    // treeLogTexture.repeat.set(2, 2); // Adjust the repeat values to control the zoom level
+
+    // const material3 = new THREE.MeshStandardMaterial({map: treeLogTexture});
     const material3 = new THREE.MeshStandardMaterial({ color: tree_log_color });
     const tree = new THREE.Mesh(geometry3, material3);
 
-    const [x, z] = Array(2).fill().map(() => THREE.MathUtils.randFloatSpread(500))
+    const [x, z] = Array(2).fill().map(() => THREE.MathUtils.randFloatSpread(300))
     const y = getYPosition(x, z);
 
     meshNameMap.set(leaf1, 'leaf1');
     meshNameMap.set(leaf2, 'leaf2');
 
-    leaf1.position.set(x, y + 2.5, z);
-    leaf2.position.set(x, y + 4.5, z);
-    tree.position.set(x, y, z);
+    // leaf1.position.set(x, y + 2.5, z);
+    // leaf2.position.set(x, y + 4.5, z);
+    // tree.position.set(x, y, z);
 
-    // leaf.position.set(x, y + 5, z);
-    // leaf1.position.set(x, y + 7, z);
-    // tree.position.set(x, y + 2.5, z);
+    leaf1.position.set(x, y + 5, z);
+    leaf2.position.set(x, y + 7, z);
+    tree.position.set(x, y + 2.5, z);
 
     scene.add(leaf1);
     scene.add(leaf2);
@@ -114,10 +142,26 @@ function addTree() {
 
 function getYPosition(x, z) {
     for (const child of scene.children) {
-        if (child instanceof THREE.Mesh && child.geometry instanceof THREE.CylinderGeometry) {
+        if (meshNameMap.get(child) == 'cliff') {
             const distance = Math.sqrt((child.position.x - x) ** 2 + (child.position.z - z) ** 2);
-            if (distance < 50) {
-                return child.position.y;
+            if (distance < child.geometry.parameters.radiusTop) {
+                // var worldCenter = new THREE.Vector3();
+                // child.geometry.computeBoundingBox(); // Ensure geometry bounding box is up-to-date
+                // child.geometry.boundingBox.getCenter(worldCenter); // Get the center of the bounding box
+                // // Now, transform the center to world space
+                // child.localToWorld(worldCenter);
+                // console.log(worldCenter);
+
+                // var distanceFromCenter = Math.sqrt((x - worldCenter.x) ** 2 + (z - worldCenter.z) ** 2);
+
+                var height = child.geometry.parameters.height;
+                var maxHeight = height / 2; // Assuming the cylinder's height is measured from -height/2 to height/2
+
+                var y = (distance / (child.geometry.parameters.radiusTop + child.geometry.parameters.radiusBottom)) * maxHeight;
+                console.log(child.position.x)
+                return -(y - 10 - 2.5);
+
+                // return child.position.y;
             }
         }
     }
@@ -141,7 +185,7 @@ function getYPosition(x, z) {
 //     return closestY;
 // }
 
-Array(2000).fill().forEach(addTree);
+Array(1000).fill().forEach(addTree);
 
 const skyTexture = new THREE.TextureLoader().load('texture/sky.jpg');
 scene.background = skyTexture;
@@ -178,11 +222,11 @@ function animate() {
     // console.log(camera.position.y, camera.position.z);
 
     // cube.rotation.x += 0.01;
-    // cube.rotation.y += 0.01;
+    // cube.rotation.y += 0.01;\
 
     // animateCamera();
 
-    // controls.update();
+    controls.update();
     renderer.render(scene, camera);
 }
 
@@ -197,7 +241,7 @@ function animateCamera() {
     camera.position.x = x;
     camera.position.z = z;
     camera.position.y = 30;
-    camera.lookAt(scene.position);
+    // camera.lookAt(scene.position);
 }
 
 // function moveCamera() {
@@ -215,11 +259,11 @@ function moveCamera() {
     camera.position.z = scrollY * 0.01;
     camera.position.x = scrollY * 0.01;
     camera.position.y = 30;
-    console.log(camera.position);
+    // console.log(camera.position);
     camera.lookAt(scene.position);
 }
 
-document.body.onscroll = moveCamera;
-moveCamera();
+// document.body.onscroll = moveCamera;
+// moveCamera()
 
 animate();
