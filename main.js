@@ -209,10 +209,10 @@ function animateCamera() {
 // }
 
 function moveCamera() {
-    const scrollY = window.scrollY;
+    const scrollY = window.scrollY + 1;
     // console.log(scrollY);
 
-    camera.position.z = -scrollY * 0.01;
+    camera.position.z = scrollY * 0.01;
     camera.position.x = scrollY * 0.01;
     camera.position.y = 30;
     console.log(camera.position);
