@@ -22,7 +22,7 @@ var leaf2_color = 0x5f926a;
 var tree_log_color = 0x6F4E37;
 // var point_light_color = 0xF9E79F;
 // var ambient_light_color = 0xffffff;
-var sun_position = new THREE.Vector3(10, 50, 10);
+var sun_position = new THREE.Vector3(10, 50, -20);
 
 const meshNameMap = new Map();
 
@@ -352,14 +352,16 @@ function cycleColors() {
     updateLeafColors(currentPair.leaf1, currentPair.leaf2);
     changeFloorTexture(currentPair.floor, currentPair.floorColor, currentPair.lightColor);
     currentPairIndex = (currentPairIndex + 1) % colorPairs.length;
+
+    document.documentElement.style.setProperty('--dark-bg', `rgb(${currentPair.leaf1.r}, ${currentPair.leaf1.g}, ${currentPair.leaf1.b})`);
 }
 
 function updateLeafColors(color1, color2) {
     leaf1ShaderMaterial.uniforms.leaf1Color.value.set(color1.r, color1.g, color1.b);
     leaf2ShaderMaterial.uniforms.leaf2Color.value.set(color2.r, color2.g, color2.b);
 }
-
-setInterval(cycleColors, 2000);
+cycleColors();
+setInterval(cycleColors, 10000);
 
 // function changeTreeColor(color1, color2) {
 //     scene.traverse(function (child) {
