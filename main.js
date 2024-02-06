@@ -142,55 +142,85 @@ Array(10).fill().forEach(addCliff);
 
 const leaf1ShaderMaterial = new THREE.ShaderMaterial({
     vertexShader: `
-        void main(){
+        varying vec3 vNormal;
+        
+        void main() {
             gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+            vNormal = normal;
         }
     `,
     fragmentShader: `
         uniform vec3 leaf1Color;
-            void main(){
-                gl_FragColor = vec4(leaf1Color / 255.0, 1.0);
-            }
+        varying vec3 vNormal;
+        uniform vec3 lightDirection;
+        
+        void main() {
+            vec3 normal = normalize(vNormal); // Assuming vNormal is the normal vector at the fragment
+            float brightness = dot(normal, lightDirection); // Calculate brightness based on the angle between normal and light direction
+            vec3 finalColor = leaf1Color / 255.0 * brightness; // Adjust color based on brightness
+            gl_FragColor = vec4(finalColor, 1.0);
+        }
     `,
     uniforms: {
         leaf1Color: {
             value: new THREE.Vector3(88, 126, 96)
+        },
+        lightDirection: {
+            value: new THREE.Vector3()
         }
     }
 });
 
+const lightDirection = new THREE.Vector3();
+directionalLight.getWorldDirection(lightDirection);
+leaf1ShaderMaterial.uniforms.lightDirection.value.copy(lightDirection);
+
 const leaf2ShaderMaterial = new THREE.ShaderMaterial({
     vertexShader: `
-        void main(){
+        varying vec3 vNormal;
+        
+        void main() {
             gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+            vNormal = normal;
         }
     `,
     fragmentShader: `
         uniform vec3 leaf2Color;
-            void main(){
-                gl_FragColor = vec4(leaf2Color / 255.0, 1.0);
-            }
+        varying vec3 vNormal;
+        uniform vec3 lightDirection;
+        
+        void main() {
+            vec3 normal = normalize(vNormal); // Assuming vNormal is the normal vector at the fragment
+            float brightness = dot(normal, lightDirection); // Calculate brightness based on the angle between normal and light direction
+            vec3 finalColor = leaf2Color / 255.0 * brightness; // Adjust color based on brightness
+            gl_FragColor = vec4(finalColor, 1.0);
+        }
     `,
     uniforms: {
         leaf2Color: {
-            value: new THREE.Vector3(95, 146, 106)
+            value: new THREE.Vector3(88, 126, 96)
+        },
+        lightDirection: {
+            value: new THREE.Vector3()
         }
     }
 });
 
-function addTree() {
-    const treeShaderMaterial = new THREE.ShaderMaterial({
-        vertexShader: `
-            // Your vertex shader code for the tree
-        `,
-        fragmentShader: `
-            // Your fragment shader code for the tree
-        `,
-        uniforms: {
-            // Define uniforms if needed
-        }
-    });
+leaf2ShaderMaterial.uniforms.lightDirection.value.copy(lightDirection);
 
+const treeShaderMaterial = new THREE.ShaderMaterial({
+    vertexShader: `
+       
+    `,
+    fragmentShader: `
+        
+    `,
+    uniforms: {
+       
+    }
+});
+
+function addTree() {
     const geometry1 = new THREE.ConeGeometry(2, 5, 10);
     const leaf1 = new THREE.Mesh(geometry1, leaf1ShaderMaterial);
 
