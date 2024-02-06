@@ -71,9 +71,13 @@ floor.rotation.x = -Math.PI / 2;
 meshNameMap.set(floor, 'floorMesh');
 scene.add(floor);
 
+var skyColor = 0xffffbb; // Light blue color for a sunny day
+var sunColor = 0xF9E79F; // Sun color (light yellow)
+
 const geometry = new THREE.SphereGeometry(5, 32, 16);
-const material = new THREE.MeshBasicMaterial({ color: 0xF9E79F });
+const material = new THREE.MeshBasicMaterial({ color: sunColor });
 const sun = new THREE.Mesh(geometry, material);
+meshNameMap.set(sun, 'sun');
 sun.position.copy(sun_position);
 scene.add(sun);
 
@@ -92,9 +96,6 @@ scene.add(sun);
 // light.position.set( 0, 100, 0 ); //default; light shining from top
 // light.castShadow = true; // default false
 // scene.add( light );
-
-const skyColor = 0xffffbb; // Light blue color for a sunny day
-const sunColor = 0xF9E79F; // Sun color (light yellow)
 
 // Hemisphere light representing the sky
 const hemisphereLight = new THREE.HemisphereLight(skyColor, 0x3a4f3f, 0.5);
@@ -279,19 +280,22 @@ const colorPairs = [
         leaf1: new THREE.Color(88, 126, 96),
         leaf2: new THREE.Color(95, 146, 106),
         floor: new THREE.TextureLoader().load('texture/Grass_whwnabbhr_1k_Diffuse.jpg'),
-        floorColor: new THREE.Color(leaf2_color)
+        floorColor: new THREE.Color(0x3a4f3f),
+        lightColor: new THREE.Color(0xF9E79F)
     },
     {
         leaf1: new THREE.Color(105, 75, 55),
         leaf2: new THREE.Color(165, 99, 60),
         floor: new THREE.TextureLoader().load('texture/Grass_whwnabbhr_1k_Displacement.jpg'),
-        floorColor: new THREE.Color(0xa5633c)
+        floorColor: new THREE.Color(0xa5633c),
+        lightColor: new THREE.Color(0xFFD700)
     },
     {
         leaf1: new THREE.Color(88, 126, 96),
         leaf2: new THREE.Color(234, 237, 242),
         floor: new THREE.TextureLoader().load('texture/Grass_whwnabbhr_1k_AmbientOcclusion.jpg'),
-        floorColor: new THREE.Color(0xeaedf2)
+        floorColor: new THREE.Color(0xeaedf2),
+        lightColor: new THREE.Color(0xADD8E6)
     }
 ];
 
@@ -309,16 +313,25 @@ const colorPairs = [
 //     });
 // }
 
-function changeFloorTexture(texture, color) {
+function changeFloorTexture(texture, color, sunColor) {
     scene.traverse(function (child) {
         const meshName = meshNameMap.get(child);
         if (meshName == 'floorMesh') {
+            texture.wrapS = THREE.RepeatWrapping;
+            texture.wrapT = THREE.RepeatWrapping;
+            texture.repeat.set(10, 10);
             child.material.map = texture;
             child.material.color = color;
             child.material.needsUpdate = true;
         }
         if (meshName == 'cliff') {
             child.material.color.copy(color);
+        }
+        if (meshName == 'sun') {
+            child.material.color.copy(sunColor);
+        }
+        if (child instanceof THREE.DirectionalLight) {
+            child.color.set(sunColor);
         }
     });
 }
@@ -337,7 +350,7 @@ function changeFloorTexture(texture, color) {
 function cycleColors() {
     const currentPair = colorPairs[currentPairIndex];
     updateLeafColors(currentPair.leaf1, currentPair.leaf2);
-    changeFloorTexture(currentPair.floor, currentPair.floorColor);
+    changeFloorTexture(currentPair.floor, currentPair.floorColor, currentPair.lightColor);
     currentPairIndex = (currentPairIndex + 1) % colorPairs.length;
 }
 
@@ -346,7 +359,7 @@ function updateLeafColors(color1, color2) {
     leaf2ShaderMaterial.uniforms.leaf2Color.value.set(color2.r, color2.g, color2.b);
 }
 
-setInterval(cycleColors, 5000);
+setInterval(cycleColors, 2000);
 
 // function changeTreeColor(color1, color2) {
 //     scene.traverse(function (child) {
