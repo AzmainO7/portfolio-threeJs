@@ -34,6 +34,24 @@ scene.fog = new THREE.Fog(0xcccccc, 0.1, 500);
 // const cube = new THREE.Mesh(geometry, material);
 // scene.add(cube);
 
+// const floorShaderMaterial = new THREE.ShaderMaterial({
+//     vertexShader: `
+//         void main() {
+//             gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+//         }
+//     `,
+//     fragmentShader: `
+//         uniform sampler2D floorTexture;
+
+//         void main() {
+//             gl_FragColor = texture2D(floorTexture, vec2(0.5, 0.5));
+//         }
+//     `,
+//     uniforms: {
+//         floorTexture: { value: new THREE.TextureLoader().load('texture/Grass_whwnabbhr_1k_Diffuse.jpg') }
+//     }
+// });
+
 const floorGeometry = new THREE.PlaneGeometry(2500, 2500);
 
 const floorTexture = new THREE.TextureLoader().load('texture/Grass_whwnabbhr_1k_Diffuse.jpg', onLoad);
@@ -45,9 +63,10 @@ function onLoad(texture) {
     console.log('Texture loaded successfully:', texture);
 }
 
-const floorMaterial = new THREE.MeshStandardMaterial({ map: floorTexture, color: 0x3a4f3f});
+const floorMaterial = new THREE.MeshStandardMaterial({ map: floorTexture, color: 0x3a4f3f });
 // const floorMaterial = new THREE.MeshStandardMaterial({ color: 0x3a4f3f });
 const floor = new THREE.Mesh(floorGeometry, floorMaterial);
+// const floor = new THREE.Mesh(floorGeometry, floorShaderMaterial);
 floor.rotation.x = -Math.PI / 2;
 meshNameMap.set(floor, 'floorMesh');
 scene.add(floor);
@@ -120,25 +139,84 @@ function addCliff() {
 
 Array(10).fill().forEach(addCliff);
 
+const leaf1ShaderMaterial = new THREE.ShaderMaterial({
+    vertexShader: `
+        void main(){
+            gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+        }
+    `,
+    fragmentShader: `
+        uniform vec3 leaf1Color;
+            void main(){
+                gl_FragColor = vec4(leaf1Color / 255.0, 1.0);
+            }
+    `,
+    uniforms: {
+        leaf1Color: {
+            value: new THREE.Vector3(88, 126, 96)
+        }
+    }
+});
+
+const leaf2ShaderMaterial = new THREE.ShaderMaterial({
+    vertexShader: `
+        void main(){
+            gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+        }
+    `,
+    fragmentShader: `
+        uniform vec3 leaf2Color;
+            void main(){
+                gl_FragColor = vec4(leaf2Color / 255.0, 1.0);
+            }
+    `,
+    uniforms: {
+        leaf2Color: {
+            value: new THREE.Vector3(95, 146, 106)
+        }
+    }
+});
+
 function addTree() {
+    const treeShaderMaterial = new THREE.ShaderMaterial({
+        vertexShader: `
+            // Your vertex shader code for the tree
+        `,
+        fragmentShader: `
+            // Your fragment shader code for the tree
+        `,
+        uniforms: {
+            // Define uniforms if needed
+        }
+    });
+
     const geometry1 = new THREE.ConeGeometry(2, 5, 10);
-    // const leaf1Texture = new THREE.TextureLoader().load('texture/leaf3.webp');
-    // leaf1Texture.wrapS = THREE.RepeatWrapping;
-    // leaf1Texture.wrapT = THREE.RepeatWrapping;
-    // leaf1Texture.repeat.set(2, 2); // Adjust the repeat values to control the zoom level
-    // const material1 = new THREE.MeshStandardMaterial({ map: leaf1Texture });
-    const material1 = new THREE.MeshStandardMaterial({ color: leaf1_color });
-    const leaf1 = new THREE.Mesh(geometry1, material1);
+    const leaf1 = new THREE.Mesh(geometry1, leaf1ShaderMaterial);
 
     const geometry2 = new THREE.ConeGeometry(2, 5, 10);
-    // const leaf2Texture = new THREE.TextureLoader().load('texture/leaf3.webp');
-    // leaf2Texture.wrapS = THREE.RepeatWrapping;
-    // leaf2Texture.wrapT = THREE.RepeatWrapping;
-    // leaf2Texture.repeat.set(2, 2); // Adjust the repeat values to control the zoom level
+    const leaf2 = new THREE.Mesh(geometry2, leaf2ShaderMaterial);
 
-    // const material2 = new THREE.MeshStandardMaterial({ map: leaf2Texture });
-    const material2 = new THREE.MeshStandardMaterial({ color: leaf2_color });
-    const leaf2 = new THREE.Mesh(geometry2, material2);
+    // const geometry3 = new THREE.CylinderGeometry(0.5, 0.5, 5);
+    // const tree = new THREE.Mesh(geometry3, treeShaderMaterial);
+
+    // const geometry1 = new THREE.ConeGeometry(2, 5, 10);
+    // // const leaf1Texture = new THREE.TextureLoader().load('texture/leaf3.webp');
+    // // leaf1Texture.wrapS = THREE.RepeatWrapping;
+    // // leaf1Texture.wrapT = THREE.RepeatWrapping;
+    // // leaf1Texture.repeat.set(2, 2); // Adjust the repeat values to control the zoom level
+    // // const material1 = new THREE.MeshStandardMaterial({ map: leaf1Texture });
+    // const material1 = new THREE.MeshStandardMaterial({ color: leaf1_color });
+    // const leaf1 = new THREE.Mesh(geometry1, material1);
+
+    // const geometry2 = new THREE.ConeGeometry(2, 5, 10);
+    // // const leaf2Texture = new THREE.TextureLoader().load('texture/leaf3.webp');
+    // // leaf2Texture.wrapS = THREE.RepeatWrapping;
+    // // leaf2Texture.wrapT = THREE.RepeatWrapping;
+    // // leaf2Texture.repeat.set(2, 2); // Adjust the repeat values to control the zoom level
+
+    // // const material2 = new THREE.MeshStandardMaterial({ map: leaf2Texture });
+    // const material2 = new THREE.MeshStandardMaterial({ color: leaf2_color });
+    // const leaf2 = new THREE.Mesh(geometry2, material2);
 
     const geometry3 = new THREE.CylinderGeometry(0.5, 0.5, 5);
     // const treeLogTexture = new THREE.TextureLoader().load('texture/log.jpg');
@@ -195,65 +273,80 @@ Array(1000).fill().forEach(addTree);
 const skyTexture = new THREE.TextureLoader().load('texture/sky.jpg');
 scene.background = skyTexture;
 
-
 let currentPairIndex = 0;
 const colorPairs = [
     {
-        leaf1: new THREE.Color(leaf1_color),
-        leaf2: new THREE.Color(leaf2_color),
-        floor: new THREE.TextureLoader().load('texture/Grass_whwnabbhr_1k_Diffuse.jpg', onLoad)
+        leaf1: new THREE.Color(88, 126, 96),
+        leaf2: new THREE.Color(95, 146, 106),
+        floor: new THREE.TextureLoader().load('texture/Grass_whwnabbhr_1k_Diffuse.jpg'),
+        floorColor: new THREE.Color(leaf2_color)
     },
     {
-        leaf1: new THREE.Color(0x694b37),
-        leaf2: new THREE.Color(0xa5633c),
-        floor: new THREE.TextureLoader().load('texture/Grass_whwnabbhr_1k_Displacement.jpg', onLoad)
+        leaf1: new THREE.Color(105, 75, 55),
+        leaf2: new THREE.Color(165, 99, 60),
+        floor: new THREE.TextureLoader().load('texture/Grass_whwnabbhr_1k_Displacement.jpg'),
+        floorColor: new THREE.Color(0xa5633c)
     },
     {
-        leaf1: new THREE.Color(leaf1_color),
-        leaf2: new THREE.Color(0xeaedf2),
-        floor: new THREE.TextureLoader().load('texture/Grass_whwnabbhr_1k_AmbientOcclusion.jpg', onLoad)
+        leaf1: new THREE.Color(88, 126, 96),
+        leaf2: new THREE.Color(234, 237, 242),
+        floor: new THREE.TextureLoader().load('texture/Grass_whwnabbhr_1k_AmbientOcclusion.jpg'),
+        floorColor: new THREE.Color(0xeaedf2)
     }
 ];
 
-function changeTreeColor(color1, color2) {
-    scene.traverse(function (child) {
-        if (child instanceof THREE.Mesh && child.geometry instanceof THREE.ConeGeometry) {
-            const meshName = meshNameMap.get(child);
-            if (meshName == 'leaf1') {
-                child.material.color.copy(color1);
-            }
-            else if (meshName == 'leaf2') {
-                child.material.color.copy(color2);
-            }
-        }
-    });
-}
+// function changeTreeColor(color1, color2) {
+//     scene.traverse(function (child) {
+//         if (child instanceof THREE.Mesh && child.geometry instanceof THREE.ConeGeometry) {
+//             const meshName = meshNameMap.get(child);
+//             if (meshName == 'leaf1') {
+//                 child.material.color.copy(color1);
+//             }
+//             else if (meshName == 'leaf2') {
+//                 child.material.color.copy(color2);
+//             }
+//         }
+//     });
+// }
 
 function changeFloorTexture(texture, color) {
     scene.traverse(function (child) {
         const meshName = meshNameMap.get(child);
         if (meshName == 'floorMesh') {
             child.material.map = texture;
-            child.material.color.copy(color);
+            child.material.color = color;
             child.material.needsUpdate = true;
         }
-        if(meshName == 'cliff')
-        {
+        if (meshName == 'cliff') {
             child.material.color.copy(color);
         }
     });
 }
 
+// function cycleColors() {
+//     const currentPair = colorPairs[currentPairIndex];
+//     changeTreeColor(currentPair.leaf1, currentPair.leaf2);
+//     changeFloorTexture(currentPair.floor, currentPair.leaf2);
+//     currentPairIndex = (currentPairIndex + 1) % colorPairs.length;
+//     setTimeout(cycleColors, 5000);
+// }
+
+
+// cycleColors();
+
 function cycleColors() {
     const currentPair = colorPairs[currentPairIndex];
-    changeTreeColor(currentPair.leaf1, currentPair.leaf2);
-    changeFloorTexture(currentPair.floor, currentPair.leaf2);
+    updateLeafColors(currentPair.leaf1, currentPair.leaf2);
+    changeFloorTexture(currentPair.floor, currentPair.floorColor);
     currentPairIndex = (currentPairIndex + 1) % colorPairs.length;
-    setTimeout(cycleColors, 5000);
 }
 
-cycleColors();
+function updateLeafColors(color1, color2) {
+    leaf1ShaderMaterial.uniforms.leaf1Color.value.set(color1.r, color1.g, color1.b);
+    leaf2ShaderMaterial.uniforms.leaf2Color.value.set(color2.r, color2.g, color2.b);
+}
 
+setInterval(cycleColors, 5000);
 
 // function changeTreeColor(color1, color2) {
 //     scene.traverse(function (child) {
