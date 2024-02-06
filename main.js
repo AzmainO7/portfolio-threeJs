@@ -26,7 +26,7 @@ var sun_position = new THREE.Vector3(10, 50, 10);
 
 const meshNameMap = new Map();
 
-scene.fog = new THREE.Fog( 0xcccccc, 0.1, 500 );
+scene.fog = new THREE.Fog(0xcccccc, 0.1, 500);
 
 // const geometry = new THREE.BoxGeometry(2, 1, 2);
 // // const material = new THREE.MeshBasicMaterial({ color: 0x00ff00, wireframe: true });
@@ -36,15 +36,20 @@ scene.fog = new THREE.Fog( 0xcccccc, 0.1, 500 );
 
 const floorGeometry = new THREE.PlaneGeometry(2500, 2500);
 
-const floorTexture = new THREE.TextureLoader().load('texture/Grass_whwnabbhr_1k_Diffuse.jpg');
+const floorTexture = new THREE.TextureLoader().load('texture/Grass_whwnabbhr_1k_Diffuse.jpg', onLoad);
 floorTexture.wrapS = THREE.RepeatWrapping;
 floorTexture.wrapT = THREE.RepeatWrapping;
 floorTexture.repeat.set(10, 10); // Adjust the repeat values to control the zoom level
 
-const floorMaterial = new THREE.MeshStandardMaterial({ map: floorTexture, color: 0x3a4f3f });
+function onLoad(texture) {
+    console.log('Texture loaded successfully:', texture);
+}
+
+const floorMaterial = new THREE.MeshStandardMaterial({ map: floorTexture, color: 0x3a4f3f});
 // const floorMaterial = new THREE.MeshStandardMaterial({ color: 0x3a4f3f });
 const floor = new THREE.Mesh(floorGeometry, floorMaterial);
 floor.rotation.x = -Math.PI / 2;
+meshNameMap.set(floor, 'floorMesh');
 scene.add(floor);
 
 const geometry = new THREE.SphereGeometry(5, 32, 16);
@@ -174,12 +179,11 @@ function getYPosition(x, z) {
                 const r = child.geometry.parameters.radius;
                 const y = child.position.y + Math.sqrt(h ** 2 - ((h * distance) / r) ** 2);
                 return y - 11 - 2.5;
-            }else if(distance <= child.geometry.parameters.radius * 0.3)
-            {
+            } else if (distance <= child.geometry.parameters.radius * 0.3) {
                 const h = child.geometry.parameters.height;
                 const r = child.geometry.parameters.radius;
                 const y = child.position.y + Math.sqrt(h ** 2 - ((h * distance) / r) ** 2);
-                return y-11;
+                return y - 11;
             }
         }
     }
@@ -191,31 +195,91 @@ Array(1000).fill().forEach(addTree);
 const skyTexture = new THREE.TextureLoader().load('texture/sky.jpg');
 scene.background = skyTexture;
 
+
+let currentPairIndex = 0;
+const colorPairs = [
+    {
+        leaf1: new THREE.Color(leaf1_color),
+        leaf2: new THREE.Color(leaf2_color),
+        floor: new THREE.TextureLoader().load('texture/Grass_whwnabbhr_1k_Diffuse.jpg', onLoad)
+    },
+    {
+        leaf1: new THREE.Color(0x694b37),
+        leaf2: new THREE.Color(0xa5633c),
+        floor: new THREE.TextureLoader().load('texture/Grass_whwnabbhr_1k_Displacement.jpg', onLoad)
+    },
+    {
+        leaf1: new THREE.Color(leaf1_color),
+        leaf2: new THREE.Color(0xeaedf2),
+        floor: new THREE.TextureLoader().load('texture/Grass_whwnabbhr_1k_AmbientOcclusion.jpg', onLoad)
+    }
+];
+
 function changeTreeColor(color1, color2) {
     scene.traverse(function (child) {
         if (child instanceof THREE.Mesh && child.geometry instanceof THREE.ConeGeometry) {
             const meshName = meshNameMap.get(child);
-            if (meshName == 'leaf1')
-                child.material.color.set(color1);
-            else
-                child.material.color.set(color2);
+            if (meshName == 'leaf1') {
+                child.material.color.copy(color1);
+            }
+            else if (meshName == 'leaf2') {
+                child.material.color.copy(color2);
+            }
         }
     });
 }
 
-document.addEventListener('keydown', function (event) {
-    switch (event.key) {
-        case '1':
-            changeTreeColor(new THREE.Color(leaf1_color), new THREE.Color(leaf2_color));
-            break;
-        case '2':
-            changeTreeColor(new THREE.Color(0x694b37), new THREE.Color(0xa5633c));
-            break;
-        case '3':
-            changeTreeColor(new THREE.Color(leaf1_color), new THREE.Color(0xeaedf2));
-            break;
-    }
-});
+function changeFloorTexture(texture, color) {
+    scene.traverse(function (child) {
+        const meshName = meshNameMap.get(child);
+        if (meshName == 'floorMesh') {
+            child.material.map = texture;
+            child.material.color.copy(color);
+            child.material.needsUpdate = true;
+        }
+        if(meshName == 'cliff')
+        {
+            child.material.color.copy(color);
+        }
+    });
+}
+
+function cycleColors() {
+    const currentPair = colorPairs[currentPairIndex];
+    changeTreeColor(currentPair.leaf1, currentPair.leaf2);
+    changeFloorTexture(currentPair.floor, currentPair.leaf2);
+    currentPairIndex = (currentPairIndex + 1) % colorPairs.length;
+    setTimeout(cycleColors, 5000);
+}
+
+cycleColors();
+
+
+// function changeTreeColor(color1, color2) {
+//     scene.traverse(function (child) {
+//         if (child instanceof THREE.Mesh && child.geometry instanceof THREE.ConeGeometry) {
+//             const meshName = meshNameMap.get(child);
+//             if (meshName == 'leaf1')
+//                 child.material.color.set(color1);
+//             else
+//                 child.material.color.set(color2);
+//         }
+//     });
+// }
+
+// document.addEventListener('keydown', function (event) {
+//     switch (event.key) {
+//         case '1':
+//             changeTreeColor(new THREE.Color(leaf1_color), new THREE.Color(leaf2_color));
+//             break;
+//         case '2':
+//             changeTreeColor(new THREE.Color(0x694b37), new THREE.Color(0xa5633c));
+//             break;
+//         case '3':
+//             changeTreeColor(new THREE.Color(leaf1_color), new THREE.Color(0xeaedf2));
+//             break;
+//     }
+// });
 
 function animate() {
     requestAnimationFrame(animate);
