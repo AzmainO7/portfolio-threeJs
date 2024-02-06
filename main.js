@@ -11,6 +11,8 @@ const renderer = new THREE.WebGLRenderer({
 });
 renderer.setPixelRatio(window.devicePixelRatio);
 renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 document.body.appendChild(renderer.domElement);
 
 camera.position.z = 30;
@@ -18,11 +20,13 @@ camera.position.z = 30;
 var leaf1_color = 0x587e60;
 var leaf2_color = 0x5f926a;
 var tree_log_color = 0x6F4E37;
-var point_light_color = 0xF9E79F;
-var ambient_light_color = 0xffffff;
-var sun_position = new THREE.Vector3(10, 100, 10);
+// var point_light_color = 0xF9E79F;
+// var ambient_light_color = 0xffffff;
+var sun_position = new THREE.Vector3(10, 50, 10);
 
 const meshNameMap = new Map();
+
+scene.fog = new THREE.Fog( 0xcccccc, 0.1, 500 );
 
 // const geometry = new THREE.BoxGeometry(2, 1, 2);
 // // const material = new THREE.MeshBasicMaterial({ color: 0x00ff00, wireframe: true });
@@ -44,23 +48,44 @@ floor.rotation.x = -Math.PI / 2;
 scene.add(floor);
 
 const geometry = new THREE.SphereGeometry(5, 32, 16);
-const material = new THREE.MeshBasicMaterial({ color: 0xffff00 });
+const material = new THREE.MeshBasicMaterial({ color: 0xF9E79F });
 const sun = new THREE.Mesh(geometry, material);
 sun.position.copy(sun_position);
 scene.add(sun);
 
 // const directionalLight = new THREE.DirectionalLight( point_light_color, 0.5 );
-const pointlight = new THREE.PointLight(point_light_color, 200000, 200);
-// const pointlight = new THREE.PointLight(0xF9E79F);
-pointlight.position.copy(sun_position);
-const AmbientLight = new THREE.AmbientLight(ambient_light_color);
-// scene.add(directionalLight);
-scene.add(pointlight, AmbientLight);
 
-const lightHelper = new THREE.PointLightHelper(pointlight);
-const gridHelper = new THREE.GridHelper(2500, 50);
-// scene.add(lightHelper, gridHelper);
-scene.add(lightHelper);
+// const pointlight = new THREE.PointLight(point_light_color, 200000, 200);
+// // const pointlight = new THREE.PointLight(0xF9E79F);
+// pointlight.position.copy(sun_position);
+// const AmbientLight = new THREE.AmbientLight(ambient_light_color);
+// // scene.add(directionalLight);
+// scene.add(pointlight, AmbientLight);
+
+// scene.add(new THREE.HemisphereLight(0xf0f5f5, 0x3a4f3f, 0.5));
+
+// const light = new THREE.DirectionalLight( 0xF9E79F, 20 );
+// light.position.set( 0, 100, 0 ); //default; light shining from top
+// light.castShadow = true; // default false
+// scene.add( light );
+
+const skyColor = 0xffffbb; // Light blue color for a sunny day
+const sunColor = 0xF9E79F; // Sun color (light yellow)
+
+// Hemisphere light representing the sky
+const hemisphereLight = new THREE.HemisphereLight(skyColor, 0x3a4f3f, 0.5);
+scene.add(hemisphereLight);
+
+// Directional light representing the sun
+const directionalLight = new THREE.DirectionalLight(sunColor, 15);
+directionalLight.position.set(10, 100, 10);
+directionalLight.castShadow = true;
+scene.add(directionalLight);
+
+// const lightHelper = new THREE.PointLightHelper(pointlight);
+// const gridHelper = new THREE.GridHelper(2500, 50);
+// // scene.add(lightHelper, gridHelper);
+// scene.add(lightHelper);
 
 const controls = new OrbitControls(camera, renderer.domElement);
 
@@ -69,7 +94,8 @@ function addCliff() {
     // const cliffWidth = THREE.MathUtils.randFloat(20, 100);
     // const cliffDepth = THREE.MathUtils.randFloat(10, 50);
 
-    const geometry = new THREE.CylinderGeometry(50, 2, 20, 32);
+    const geometry = new THREE.ConeGeometry(40, 15, 32);
+    // const geometry = new THREE.CylinderGeometry(2, 50, 20, 32);
     // const cliffTexture = new THREE.TextureLoader().load('texture/cliff3.jpeg');
     // cliffTexture.wrapS = THREE.RepeatWrapping;
     // cliffTexture.wrapT = THREE.RepeatWrapping;
@@ -78,14 +104,12 @@ function addCliff() {
     // const material = new THREE.MeshStandardMaterial({map: cliffTexture});
     const cliff = new THREE.Mesh(geometry, material);
 
-    cliff.rotation.x = Math.PI;
-
     const x = THREE.MathUtils.randFloat(-200, 200);
     const z = THREE.MathUtils.randFloat(-200, 200);
 
     meshNameMap.set(cliff, 'cliff');
 
-    cliff.position.set(x, 10, z);
+    cliff.position.set(x, 7, z);
     scene.add(cliff);
 }
 
@@ -143,47 +167,18 @@ function addTree() {
 function getYPosition(x, z) {
     for (const child of scene.children) {
         if (meshNameMap.get(child) == 'cliff') {
+            // Distance from the point to the base of the cone
             const distance = Math.sqrt((child.position.x - x) ** 2 + (child.position.z - z) ** 2);
-            if (distance < child.geometry.parameters.radiusTop) {
-                // var worldCenter = new THREE.Vector3();
-                // child.geometry.computeBoundingBox(); // Ensure geometry bounding box is up-to-date
-                // child.geometry.boundingBox.getCenter(worldCenter); // Get the center of the bounding box
-                // // Now, transform the center to world space
-                // child.localToWorld(worldCenter);
-                // console.log(worldCenter);
-
-                // var distanceFromCenter = Math.sqrt((x - worldCenter.x) ** 2 + (z - worldCenter.z) ** 2);
-
-                var height = child.geometry.parameters.height;
-                var maxHeight = height / 2; // Assuming the cylinder's height is measured from -height/2 to height/2
-
-                var y = (distance / (child.geometry.parameters.radiusTop + child.geometry.parameters.radiusBottom)) * maxHeight;
-                console.log(child.position.x)
-                return -(y - 10 - 2.5);
-
-                // return child.position.y;
+            if (distance < child.geometry.parameters.radius - 2 && distance > child.geometry.parameters.radius * 0.1) {
+                const h = child.geometry.parameters.height;
+                const r = child.geometry.parameters.radius;
+                const y = child.position.y + Math.sqrt(h ** 2 - ((h * distance) / r) ** 2);
+                return y - 11 - 2.5;
             }
         }
     }
     return 0;
 }
-
-// function getYPosition(x, z) {
-//     let closestY = 0;
-//     let closestDistance = Infinity;
-
-//     for (const child of scene.children) {
-//         if (child instanceof THREE.Mesh && child.geometry instanceof THREE.CylinderGeometry) {
-//             const distance = Math.sqrt((child.position.x - x) ** 2 + (child.position.z - z) ** 2);
-//             if (distance < 10 && distance < closestDistance) {
-//                 closestY = child.position.y;
-//                 closestDistance = distance;
-//             }
-//         }
-//     }
-
-//     return closestY;
-// }
 
 Array(1000).fill().forEach(addTree);
 
@@ -224,14 +219,14 @@ function animate() {
     // cube.rotation.x += 0.01;
     // cube.rotation.y += 0.01;\
 
-    // animateCamera();
+    animateCamera();
 
     controls.update();
     renderer.render(scene, camera);
 }
 
 function animateCamera() {
-    const radius = 50;
+    const radius = 90;
     const speed = 0.0001;
     const angle = performance.now() * speed;
 
@@ -240,7 +235,7 @@ function animateCamera() {
 
     camera.position.x = x;
     camera.position.z = z;
-    camera.position.y = 30;
+    camera.position.y = 20;
     // camera.lookAt(scene.position);
 }
 
