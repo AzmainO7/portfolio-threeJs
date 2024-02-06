@@ -169,11 +169,17 @@ function getYPosition(x, z) {
         if (meshNameMap.get(child) == 'cliff') {
             // Distance from the point to the base of the cone
             const distance = Math.sqrt((child.position.x - x) ** 2 + (child.position.z - z) ** 2);
-            if (distance < child.geometry.parameters.radius - 2 && distance > child.geometry.parameters.radius * 0.1) {
+            if (distance < child.geometry.parameters.radius - 2 && distance > child.geometry.parameters.radius * 0.3) {
                 const h = child.geometry.parameters.height;
                 const r = child.geometry.parameters.radius;
                 const y = child.position.y + Math.sqrt(h ** 2 - ((h * distance) / r) ** 2);
                 return y - 11 - 2.5;
+            }else if(distance <= child.geometry.parameters.radius * 0.3)
+            {
+                const h = child.geometry.parameters.height;
+                const r = child.geometry.parameters.radius;
+                const y = child.position.y + Math.sqrt(h ** 2 - ((h * distance) / r) ** 2);
+                return y-11;
             }
         }
     }
