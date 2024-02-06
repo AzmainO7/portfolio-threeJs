@@ -175,7 +175,7 @@ document.addEventListener('keydown', function (event) {
 function animate() {
     requestAnimationFrame(animate);
 
-    console.log(camera.position.y, camera.position.z);
+    // console.log(camera.position.y, camera.position.z);
 
     // cube.rotation.x += 0.01;
     // cube.rotation.y += 0.01;
@@ -200,25 +200,22 @@ function animateCamera() {
     camera.lookAt(scene.position);
 }
 
+// function moveCamera() {
+//     const t = document.body.getBoundingClientRect().top;
+
+//     camera.position.z = t * -0.01;
+//     camera.position.x = t * -0.02;
+//     camera.rotation.y = t * -0.02;
+// }
+
 function moveCamera() {
-    // const t = document.body.getBoundingClientRect().top;
+    const scrollY = window.scrollY;
+    // console.log(scrollY);
 
-    // camera.position.z = t * -0.01;
-    // camera.position.x = t * -0.02;
-    // camera.rotation.y = t * -0.02;
-
-    const t = document.body.getBoundingClientRect().top;
-
-    const radius = 50;
-    const speed = 0.0001;
-    const angle = performance.now() * speed;
-
-    const x = Math.cos(angle) * radius;
-    const z = Math.sin(angle) * radius;
-
-    camera.position.z = t * +0.01;
-    camera.position.x = t * +0.02;
+    camera.position.z = -scrollY * 0.01;
+    camera.position.x = scrollY * 0.01;
     camera.position.y = 30;
+    console.log(camera.position);
     camera.lookAt(scene.position);
 }
 
