@@ -127,7 +127,6 @@ const TextureLoader = new THREE.TextureLoader();
 
 addParticles();
 
-
 function addParticles() {
     for (let i = 0; i < numParticles; i++) {
         positions.push(
@@ -147,12 +146,15 @@ function addParticles() {
 
     const particleMaterial = new THREE.PointsMaterial({
         size: 4,
-        map: TextureLoader.load("texture/snow.png"),
+        map: TextureLoader.load("texture/raindrop2.png"),
+        color: 0xffffff,
         blending: THREE.AdditiveBlending,
         depthTest: false,
         transparent: true,
         opacity: 0.7,
     });
+
+    
 
     particles = new THREE.Points(geometry1, particleMaterial)
     meshNameMap.set(particles, 'particles');
@@ -166,12 +168,12 @@ function addCliff() {
 
     const geometry = new THREE.ConeGeometry(40, 15, 32);
     // const geometry = new THREE.CylinderGeometry(2, 50, 20, 32);
-    // const cliffTexture = new THREE.TextureLoader().load('texture/cliff3.jpeg');
-    // cliffTexture.wrapS = THREE.RepeatWrapping;
-    // cliffTexture.wrapT = THREE.RepeatWrapping;
-    // cliffTexture.repeat.set(10,10); // Adjust the repeat values to control the zoom level
-    const material = new THREE.MeshStandardMaterial({ color: 0x3a4f3f });
-    // const material = new THREE.MeshStandardMaterial({map: cliffTexture});
+    const cliffTexture = new THREE.TextureLoader().load('texture/cliff3.jpeg');
+    cliffTexture.wrapS = THREE.RepeatWrapping;
+    cliffTexture.wrapT = THREE.RepeatWrapping;
+    cliffTexture.repeat.set(10,10); // Adjust the repeat values to control the zoom level
+    //const material = new THREE.MeshStandardMaterial({ color: 0x3a4f3f });
+    const material = new THREE.MeshStandardMaterial({map: cliffTexture});
     const cliff = new THREE.Mesh(geometry, material);
 
     const x = THREE.MathUtils.randFloat(-200, 200);
@@ -295,13 +297,13 @@ function addTree() {
     // const leaf2 = new THREE.Mesh(geometry2, material2);
 
     const geometry3 = new THREE.CylinderGeometry(0.5, 0.5, 5);
-    // const treeLogTexture = new THREE.TextureLoader().load('texture/log.jpg');
+    const treeLogTexture = new THREE.TextureLoader().load('texture/log.jpg');
     // treeLogTexture.wrapS = THREE.RepeatWrapping;
     // treeLogTexture.wrapT = THREE.RepeatWrapping;
     // treeLogTexture.repeat.set(2, 2); // Adjust the repeat values to control the zoom level
 
-    // const material3 = new THREE.MeshStandardMaterial({map: treeLogTexture});
-    const material3 = new THREE.MeshStandardMaterial({ color: tree_log_color });
+    const material3 = new THREE.MeshStandardMaterial({map: treeLogTexture});
+    //const material3 = new THREE.MeshStandardMaterial({ color: tree_log_color });
     const tree = new THREE.Mesh(geometry3, material3);
 
     const [x, z] = Array(2).fill().map(() => THREE.MathUtils.randFloatSpread(300))
@@ -356,21 +358,28 @@ const colorPairs = [
         leaf2: new THREE.Color(95, 146, 106),
         floor: new THREE.TextureLoader().load('texture/Grass_whwnabbhr_1k_Diffuse.jpg'),
         floorColor: new THREE.Color(0x3a4f3f),
-        lightColor: new THREE.Color(0xF9E79F)
+        lightColor: new THREE.Color(0xF9E79F),
+        mleaf: new THREE.TextureLoader().load('texture/raindrop2.png'),
+        mleafColor: new THREE.Color(0xffffff)
     },
     {
         leaf1: new THREE.Color(105, 75, 55),
         leaf2: new THREE.Color(165, 99, 60),
         floor: new THREE.TextureLoader().load('texture/Grass_whwnabbhr_1k_Displacement.jpg'),
         floorColor: new THREE.Color(0xa5633c),
-        lightColor: new THREE.Color(0xFFD700)
+        lightColor: new THREE.Color(0xFFD700),
+        mleaf: new THREE.TextureLoader().load('texture/pngegg.png'),
+        mleafColor: new THREE.Color(0xDC4D01)
     },
     {
         leaf1: new THREE.Color(88, 126, 96),
         leaf2: new THREE.Color(234, 237, 242),
         floor: new THREE.TextureLoader().load('texture/Grass_whwnabbhr_1k_AmbientOcclusion.jpg'),
         floorColor: new THREE.Color(0xeaedf2),
-        lightColor: new THREE.Color(0xADD8E6)
+        lightColor: new THREE.Color(0xADD8E6),
+        mleaf: new THREE.TextureLoader().load('texture/snow.png'),
+        mleafColor: new THREE.Color(0xffffff)
+     
     }
 ];
 
@@ -388,7 +397,7 @@ const colorPairs = [
 //     });
 // }
 
-function changeFloorTexture(texture, color, sunColor) {
+function changeFloorTexture(texture, color, sunColor, mleaf,mleafColor) {
     scene.traverse(function (child) {
         const meshName = meshNameMap.get(child);
         if (meshName == 'floorMesh') {
@@ -400,13 +409,24 @@ function changeFloorTexture(texture, color, sunColor) {
             child.material.needsUpdate = true;
         }
         if (meshName == 'cliff') {
-            child.material.color.copy(color);
+            texture.wrapS = THREE.RepeatWrapping;
+            texture.wrapT = THREE.RepeatWrapping;
+            texture.repeat.set(10, 10);
+            child.material.map = texture;
+            child.material.color = color;
+            child.material.needsUpdate = true;
         }
         if (meshName == 'sun') {
             child.material.color.copy(sunColor);
         }
         if (child instanceof THREE.DirectionalLight) {
             child.color.set(sunColor);
+        }
+        if (meshName == 'particles') {
+            child.material.map = mleaf;
+            child.material.color = mleafColor;
+            child.material.needsUpdate = true;
+
         }
     });
 }
@@ -419,13 +439,12 @@ function changeFloorTexture(texture, color, sunColor) {
 //     setTimeout(cycleColors, 5000);
 // }
 
-
 // cycleColors();
 
 function cycleColors() {
     const currentPair = colorPairs[currentPairIndex];
     updateLeafColors(currentPair.leaf1, currentPair.leaf2);
-    changeFloorTexture(currentPair.floor, currentPair.floorColor, currentPair.lightColor);
+    changeFloorTexture(currentPair.floor, currentPair.floorColor, currentPair.lightColor, currentPair.mleaf, currentPair.mleafColor);
     currentPairIndex = (currentPairIndex + 1) % colorPairs.length;
 
     document.documentElement.style.setProperty('--dark-bg', `rgba(${currentPair.leaf1.r}, ${currentPair.leaf1.g}, ${currentPair.leaf1.b}, 0.9)`);
@@ -472,7 +491,7 @@ function animate() {
     // cube.rotation.x += 0.01;
     // cube.rotation.y += 0.01;\
     updateParticles();
-    animateCamera();
+ //  animateCamera();
 
     controls.update();
     renderer.render(scene, camera);
@@ -494,7 +513,7 @@ function updateParticles(){
 }
 
 function animateCamera() {
-    const radius = 90;
+    const radius = 85;
     const speed = 0.0001;
     const angle = performance.now() * speed;
 
@@ -503,7 +522,7 @@ function animateCamera() {
 
     camera.position.x = x;
     camera.position.z = z;
-    camera.position.y = 20;
+    camera.position.y = 25;
     // camera.lookAt(scene.position);
 }
 
@@ -526,7 +545,7 @@ function moveCamera() {
     camera.lookAt(scene.position);
 }
 
-// document.body.onscroll = moveCamera;
-// moveCamera()
+ document.body.onscroll = moveCamera;
+ moveCamera()
 
 animate();
