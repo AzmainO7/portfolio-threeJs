@@ -487,11 +487,15 @@ function animate() {
     requestAnimationFrame(animate);
 
     // console.log(camera.position.y, camera.position.z);
-
+    if (window.innerWidth !== renderer.domElement.width || window.innerHeight !== renderer.domElement.height) {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+    }
     // cube.rotation.x += 0.01;
     // cube.rotation.y += 0.01;\
     updateParticles();
- //  animateCamera();
+    animateCamera();
 
     controls.update();
     renderer.render(scene, camera);
@@ -523,7 +527,7 @@ function animateCamera() {
     camera.position.x = x;
     camera.position.z = z;
     camera.position.y = 25;
-    // camera.lookAt(scene.position);
+    //camera.lookAt(scene.position);
 }
 
 // function moveCamera() {
@@ -536,16 +540,16 @@ function animateCamera() {
 
 function moveCamera() {
     const scrollY = window.scrollY + 1;
-    // console.log(scrollY);
+   // console.log(scrollY);
 
     camera.position.z = scrollY * 0.01;
     camera.position.x = scrollY * 0.01;
     camera.position.y = 30;
-    // console.log(camera.position);
-    camera.lookAt(scene.position);
+    //console.log(camera.position);
+   // camera.lookAt(scene.position);
 }
 
- document.body.onscroll = moveCamera;
- moveCamera()
+    //document.body.onscroll = moveCamera;
+    moveCamera()
 
 animate();
